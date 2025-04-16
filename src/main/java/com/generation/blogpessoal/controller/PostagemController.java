@@ -1,6 +1,6 @@
 package com.generation.blogpessoal.controller;
 
-import java.util.List;
+import java.util.List; 
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.generation.blogpessoal.model.Postagen;
 import com.generation.blogpessoal.repository.PostagenRepository;
+import com.generation.blogpessoal.repository.TemaRepository;
 
 import jakarta.validation.Valid;
 
@@ -30,6 +31,9 @@ public class PostagemController {
 
 	@Autowired
 	private PostagenRepository postagemRepository;
+
+	@Autowired
+	private TemaRepository temaRepository;
 
 	@GetMapping
 	public ResponseEntity<List<Postagen>> getAll() {
@@ -49,14 +53,24 @@ public class PostagemController {
 
 	@PostMapping
 	public ResponseEntity<Postagen> post(@Valid @RequestBody Postagen postagem) {
-		return ResponseEntity.status(HttpStatus.CREATED).body(postagemRepository.save(postagem));
+		if (temaRepository.existsById(postagem.getTema().getId()))
+			return ResponseEntity.status(HttpStatus.CREATED).body(postagemRepository.save(postagem));
+
+		throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "tema não existe!", null);
 	}
 
 	@PutMapping
 	public ResponseEntity<Postagen> put(@Valid @RequestBody Postagen postagen) {
-		return postagemRepository.findById(postagen.getId())
-				.map(resposta -> ResponseEntity.status(HttpStatus.OK).body(postagemRepository.save(postagen)))
-				.orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+		if (postagemRepository.existsById(postagen.getId())) {
+
+			if (temaRepository.existsById(postagen.getTema().getId()))
+				return ResponseEntity.status(HttpStatus.OK).body(postagemRepository.save(postagen));
+
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "tema não existe!", null);
+		}
+		
+return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+		
 	}
 
 	@ResponseStatus(HttpStatus.NO_CONTENT)
