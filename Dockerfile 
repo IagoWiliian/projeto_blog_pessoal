@@ -1,4 +1,4 @@
-FROM openjdk:21-jdk-oracle as build
+FROM openjdk:21-jdk as build
 
 WORKDIR /workspace/app
 
@@ -11,9 +11,9 @@ RUN chmod -R 777 ./mvnw
 
 RUN ./mvnw install -DskipTests
 
-RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
+RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../.jar)
 
-FROM openjdk:21-jdk-oracle
+FROM openjdk:21-jdk
 
 VOLUME /tmp
 
@@ -23,4 +23,4 @@ COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
 COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
 COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
 
-ENTRYPOINT ["java","-cp","app:app/lib/*","com.generation.blogpessoal.BlogpessoalApplication.java"]
+ENTRYPOINT ["java","-cp","app:app/lib/","com.generation.blogpessoal.BlogpessoalApplication"]
